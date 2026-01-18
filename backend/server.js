@@ -7,9 +7,11 @@ const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const path = require('path');
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 if (!process.env.MONGO_URI) {
   console.error('MONGO_URI is not defined');
@@ -25,6 +27,11 @@ mongoose
   });
 
 app.use('/api/auth', authRoutes);
+
+// Serve signup page
+app.get('/signup', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
 
 app.get('/', (req, res) => {
   res.send('Smart Student Tracker API running...');
