@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
+const syllabusRoutes = require('./routes/syllabus');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +28,7 @@ mongoose
   });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/syllabus', syllabusRoutes);
 
 // Serve signup page
 app.get('/signup', (req, res) => {
