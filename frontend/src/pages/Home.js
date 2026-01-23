@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, CheckCircle, Calendar, TrendingUp } from 'lucide-react';
+import { BookOpen, CheckCircle, Calendar, TrendingUp } from 'lucide-react'
 
 const Home = () => {
   return (
     <div style={styles.container}>
       <div style={styles.hero}>
-        <h1 style={styles.title}>Welcome to SyllabusPulse</h1>
+        <h1 style={styles.title}>Welcome to StudyFlow</h1>
         <p style={styles.subtitle}>
           Your smart companion for managing study schedules
         </p>

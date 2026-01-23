@@ -1,45 +1,43 @@
+// src/components/Navbar.js
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, LogOut, Home, LayoutDashboard } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { LogOut, LayoutDashboard, Home, User } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.clear(); // 
     navigate('/login');
   };
 
+  if (!localStorage.getItem('token')) return null;
+
   return (
-    <nav style={styles.navbar}>
+    <nav style={styles.nav}>
       <div style={styles.container}>
-        <div style={styles.logo}>
-          <BookOpen size={28} color="#4F46E5" />
-          <span style={styles.logoText}>SyllabusPulse</span>
+        <div style={styles.logoGroup} onClick={() => navigate('/dashboard')}>
+           <div style={styles.logoIcon}>📚</div>
+           <span style={styles.logoText}>Study<span style={{color: '#4F46E5'}}>Flow</span></span>
         </div>
         
         <div style={styles.navLinks}>
-          <Link to="/" style={styles.link}>
-            <Home size={20} />
-            <span>Home</span>
-          </Link>
+          <Link to="/" style={styles.link}><Home size={18} /> Home</Link>
+          <Link to="/dashboard" style={styles.link}><LayoutDashboard size={18} /> Dashboard</Link>
           
-          {token ? (
-            <>
-              <Link to="/dashboard" style={styles.link}>
-                <LayoutDashboard size={20} />
-                <span>Dashboard</span>
-              </Link>
-              <button onClick={handleLogout} style={styles.logoutBtn}>
-                <LogOut size={20} />
-                <span>Logout</span>
-              </button>
-            </>
-          ) : (
-            <Link to="/login" style={styles.link}>Login</Link>
-          )}
+          <div style={styles.userSection}>
+             <button onClick={handleLogout} style={styles.logoutBtn}>
+                <LogOut size={18} />
+             </button>
+             <div style={styles.profileBadge}>
+                <img 
+                  src="https://via.placeholder.com/32" 
+                  alt="profile" 
+                  style={styles.avatar} 
+                />
+             </div>
+          </div>
         </div>
       </div>
     </nav>
@@ -47,57 +45,17 @@ const Navbar = () => {
 };
 
 const styles = {
-  navbar: {
-    backgroundColor: '#ffffff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    padding: '1rem 0',
-    position: 'sticky',
-    top: 0,
-    zIndex: 1000
-  },
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '0 1rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  logo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    fontWeight: 'bold',
-    fontSize: '1.5rem'
-  },
-  logoText: { color: '#1F2937' },
-  navLinks: {
-    display: 'flex',
-    gap: '1.5rem',
-    alignItems: 'center'
-  },
-  link: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    textDecoration: 'none',
-    color: '#4B5563',
-    fontSize: '1rem',
-    fontWeight: '500'
-  },
-  logoutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    backgroundColor: '#EF4444',
-    color: 'white',
-    border: 'none',
-    padding: '0.5rem 1rem',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500'
-  }
+  nav: { background: '#ffffff', borderBottom: '1px solid #F1F5F9', position: 'sticky', top: 0, zIndex: 100 },
+  container: { maxWidth: '1250px', margin: '0 auto', height: '70px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 2rem' },
+  logoGroup: { display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' },
+  logoIcon: { fontSize: '1.5rem' },
+  logoText: { fontSize: '1.4rem', fontWeight: '800', letterSpacing: '-0.02em', color: '#1E293B' },
+  navLinks: { display: 'flex', alignItems: 'center', gap: '2rem' },
+  link: { display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: '#64748B', fontWeight: '500', fontSize: '0.95rem' },
+  userSection: { display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: '1rem' },
+  logoutBtn: { background: '#FEE2E2', border: 'none', color: '#EF4444', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex' },
+  profileBadge: { border: '2px solid #EEF2FF', borderRadius: '50%', padding: '2px' },
+  avatar: { width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }
 };
 
 export default Navbar;

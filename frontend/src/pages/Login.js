@@ -1,36 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { login } from '../services/api';
-import { LogIn } from 'lucide-react';
+import { authAPI } from '../services/api';
+import { LogIn, Mail, Lock, Loader2 } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
-      const response = await login(formData);
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      const data = await authAPI.login(formData);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      setError(err.response?.data?.error || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
@@ -40,51 +33,59 @@ const Login = () => {
     <div style={styles.container}>
       <div style={styles.card}>
         <div style={styles.header}>
-          <LogIn size={40} color="#4F46E5" />
+          <div style={styles.iconCircle}>
+            <LogIn size={28} color="#4F46E5" />
+          </div>
           <h2 style={styles.title}>Welcome Back</h2>
-          <p style={styles.subtitle}>Login to your account</p>
+          <p style={styles.subtitle}>Please enter your details to sign in</p>
         </div>
 
         {error && <div style={styles.error}>{error}</div>}
 
         <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              style={styles.input}
-              required
-              placeholder="Enter your email"
-            />
+          <div style={styles.inputWrapper}>
+            <label style={styles.label}>Email Address</label>
+            <div style={styles.inputContainer}>
+              <Mail size={18} style={styles.inputIcon} />
+              <input
+                type="email"
+                name="email"
+                placeholder="name@company.com"
+                style={styles.input}
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
 
-          <div style={styles.inputGroup}>
+          <div style={styles.inputWrapper}>
             <label style={styles.label}>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              style={styles.input}
-              required
-              placeholder="Enter your password"
-            />
+            <div style={styles.inputContainer}>
+              <Lock size={18} style={styles.inputIcon} />
+              <input
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                style={styles.input}
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
 
           <button 
             type="submit" 
-            style={styles.submitBtn}
-            disabled={loading}
+            disabled={loading} 
+            style={{...styles.button, opacity: loading ? 0.7 : 1}}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Sign In'}
           </button>
         </form>
 
         <p style={styles.linkText}>
-          Don't have an account? <Link to="/register" style={styles.link}>Register here</Link>
+          Don't have an account? <Link to="/register" style={styles.link}>Create an account</Link>
         </p>
       </div>
     </div>
@@ -93,86 +94,75 @@ const Login = () => {
 
 const styles = {
   container: {
-    minHeight: '80vh',
+    minHeight: '100vh',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: '2rem 1rem'
+    backgroundColor: '#F3F4F6', // Light gray background
+    fontFamily: 'Inter, system-ui, sans-serif'
   },
   card: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '12px',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    padding: '2.5rem',
     width: '100%',
-    maxWidth: '450px'
+    maxWidth: '420px',
+    background: '#ffffff',
+    borderRadius: '16px',
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
   },
-  header: {
-    textAlign: 'center',
-    marginBottom: '2rem'
+  header: { textAlign: 'center', marginBottom: '2rem' },
+  iconCircle: {
+    width: '60px',
+    height: '60px',
+    backgroundColor: '#EEF2FF',
+    borderRadius: '50%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: '0 auto 1rem auto'
   },
-  title: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginTop: '1rem'
-  },
-  subtitle: {
-    color: '#6B7280',
-    marginTop: '0.5rem'
-  },
-  error: {
-    backgroundColor: '#FEE2E2',
-    color: '#DC2626',
-    padding: '0.75rem',
-    borderRadius: '6px',
-    marginBottom: '1rem',
+  title: { fontSize: '1.75rem', fontWeight: '700', color: '#111827', margin: '0 0 0.5rem 0' },
+  subtitle: { color: '#6B7280', fontSize: '0.95rem' },
+  error: { 
+    backgroundColor: '#FEF2F2', 
+    color: '#DC2626', 
+    padding: '0.75rem', 
+    borderRadius: '8px', 
+    fontSize: '0.875rem', 
+    marginBottom: '1.5rem',
+    border: '1px solid #FEE2E2',
     textAlign: 'center'
   },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.5rem'
-  },
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem'
-  },
-  label: {
-    fontSize: '0.9rem',
-    fontWeight: '600',
-    color: '#374151'
-  },
+  form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
+  inputWrapper: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+  label: { fontSize: '0.875rem', fontWeight: '500', color: '#374151' },
+  inputContainer: { position: 'relative', display: 'flex', alignItems: 'center' },
+  inputIcon: { position: 'absolute', left: '12px', color: '#9CA3AF' },
   input: {
-    padding: '0.75rem',
+    width: '100%',
+    padding: '12px 12px 12px 40px',
+    borderRadius: '8px',
+    border: '1px solid #D1D5DB',
     fontSize: '1rem',
-    border: '2px solid #E5E7EB',
-    borderRadius: '6px',
     outline: 'none',
-    transition: 'border-color 0.2s'
+    transition: 'border-color 0.2s',
   },
-  submitBtn: {
+  button: {
+    marginTop: '0.5rem',
     backgroundColor: '#4F46E5',
     color: 'white',
-    padding: '0.75rem',
+    padding: '12px',
+    borderRadius: '8px',
+    border: 'none',
     fontSize: '1rem',
     fontWeight: '600',
-    border: 'none',
-    borderRadius: '6px',
     cursor: 'pointer',
-    marginTop: '1rem'
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    transition: 'background-color 0.2s',
   },
-  linkText: {
-    textAlign: 'center',
-    marginTop: '1.5rem',
-    color: '#6B7280'
-  },
-  link: {
-    color: '#4F46E5',
-    textDecoration: 'none',
-    fontWeight: '600'
-  }
+  linkText: { marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem', color: '#6B7280' },
+  link: { color: '#4F46E5', textDecoration: 'none', fontWeight: '600' }
 };
 
 export default Login;

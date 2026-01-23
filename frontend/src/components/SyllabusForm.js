@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { X, Plus } from 'lucide-react';
+import { syllabusAPI } from '../services/api';
+import { BookOpen, Tag, Flag, Loader2 } from 'lucide-react';
 
-const SyllabusForm = ({ onAdd, onClose }) => {
+const SyllabusForm = ({ onTopicAdded }) => {
   const [formData, setFormData] = useState({
     subject: '',
     topicName: '',
     importance: 'Medium'
   });
+
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -15,115 +19,114 @@ const SyllabusForm = ({ onAdd, onClose }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onAdd(formData);
-    setFormData({ subject: '', topicName: '', importance: 'Medium' });
+    setError('');
+
+    if (!formData.subject || !formData.topicName) {
+      setError('Please fill all fields');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await syllabusAPI.addTopic(formData);
+
+      setFormData({
+        subject: '',
+        topicName: '',
+        importance: 'Medium'
+      });
+
+      if (onTopicAdded) onTopicAdded();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to add topic');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
-        <div style={styles.header}>
-          <h2 style={styles.title}>Add New Topic</h2>
-          <button onClick={onClose} style={styles.closeBtn}>
-            <X size={24} />
-          </button>
-        </div>
+    <div style={styles.formContainer}>
+      {error && <div style={styles.error}>{error}</div>}
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Subject</label>
+      <form onSubmit={handleSubmit} style={styles.form}>
+        {/* Subject Input */}
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Subject</label>
+          <div style={styles.inputWrapper}>
+            <BookOpen size={18} style={styles.icon} />
             <input
               type="text"
               name="subject"
+              style={styles.input}
               value={formData.subject}
               onChange={handleChange}
-              style={styles.input}
+              placeholder="e.g., Mathematics"
               required
-              placeholder="e.g., Mathematics, Physics"
             />
           </div>
+        </div>
 
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Topic Name</label>
+        {/* Topic Name Input */}
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Topic Name</label>
+          <div style={styles.inputWrapper}>
+            <Tag size={18} style={styles.icon} />
             <input
               type="text"
               name="topicName"
+              style={styles.input}
               value={formData.topicName}
               onChange={handleChange}
-              style={styles.input}
-              required
               placeholder="e.g., Calculus - Derivatives"
+              required
             />
           </div>
+        </div>
 
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Importance Level</label>
+        {/* Importance Select */}
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Priority / Importance</label>
+          <div style={styles.inputWrapper}>
+            <Flag size={18} style={styles.icon} />
             <select
               name="importance"
+              style={styles.select}
               value={formData.importance}
               onChange={handleChange}
-              style={styles.select}
             >
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
+              <option value="High">High Priority</option>
+              <option value="Medium">Medium Priority</option>
+              <option value="Low">Low Priority</option>
             </select>
           </div>
+        </div>
 
-          <button type="submit" style={styles.submitBtn}>
-            <Plus size={20} />
-            Add Topic
-          </button>
-        </form>
-      </div>
+        <button type="submit" disabled={loading} style={styles.submitBtn}>
+          {loading ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              <span>Adding Topic...</span>
+            </>
+          ) : (
+            'Create Topic'
+          )}
+        </button>
+      </form>
     </div>
   );
 };
 
 const styles = {
-  overlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000
-  },
-  modal: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '12px',
-    width: '90%',
-    maxWidth: '500px',
-    boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1.5rem'
-  },
-  title: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: '#1F2937'
-  },
-  closeBtn: {
-    backgroundColor: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#6B7280'
+  formContainer: {
+    width: '100%',
+    fontFamily: 'Inter, sans-serif'
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.5rem'
+    gap: '1.25rem'
   },
   inputGroup: {
     display: 'flex',
@@ -131,40 +134,67 @@ const styles = {
     gap: '0.5rem'
   },
   label: {
-    fontSize: '0.9rem',
+    fontSize: '0.875rem',
     fontWeight: '600',
     color: '#374151'
   },
+  inputWrapper: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center'
+  },
+  icon: {
+    position: 'absolute',
+    left: '12px',
+    color: '#9CA3AF'
+  },
   input: {
-    padding: '0.75rem',
-    fontSize: '1rem',
-    border: '2px solid #E5E7EB',
-    borderRadius: '6px',
-    outline: 'none'
+    width: '100%',
+    padding: '12px 12px 12px 40px',
+    borderRadius: '8px',
+    border: '1px solid #D1D5DB',
+    fontSize: '0.95rem',
+    outline: 'none',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    boxSizing: 'border-box'
   },
   select: {
-    padding: '0.75rem',
-    fontSize: '1rem',
-    border: '2px solid #E5E7EB',
-    borderRadius: '6px',
-    outline: 'none',
+    width: '100%',
+    padding: '12px 12px 12px 40px',
+    borderRadius: '8px',
+    border: '1px solid #D1D5DB',
     backgroundColor: 'white',
-    cursor: 'pointer'
+    fontSize: '0.95rem',
+    outline: 'none',
+    appearance: 'none', // Removes default browser arrow
+    cursor: 'pointer',
+    boxSizing: 'border-box'
   },
   submitBtn: {
+    marginTop: '0.5rem',
     backgroundColor: '#4F46E5',
     color: 'white',
-    padding: '0.75rem',
+    padding: '12px',
+    borderRadius: '8px',
+    border: 'none',
     fontSize: '1rem',
     fontWeight: '600',
-    border: 'none',
-    borderRadius: '6px',
     cursor: 'pointer',
     display: 'flex',
-    alignItems: 'center',
     justifyContent: 'center',
-    gap: '0.5rem',
-    marginTop: '1rem'
+    alignItems: 'center',
+    gap: '8px',
+    transition: 'background-color 0.2s'
+  },
+  error: {
+    backgroundColor: '#FEF2F2',
+    color: '#DC2626',
+    padding: '0.75rem',
+    borderRadius: '8px',
+    fontSize: '0.875rem',
+    marginBottom: '1rem',
+    textAlign: 'center',
+    border: '1px solid #FEE2E2'
   }
 };
 

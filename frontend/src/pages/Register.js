@@ -1,24 +1,34 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { register } from '../services/api';
+import { authAPI } from '../services/api';
 import { UserPlus } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: ''
+  });
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
     try {
-      await register(formData);
+      await authAPI.register(formData);
       alert('Registration successful! Please login.');
       navigate('/login');
     } catch (err) {
@@ -84,7 +94,10 @@ const Register = () => {
         </form>
 
         <p style={styles.linkText}>
-          Already have an account? <Link to="/login" style={styles.link}>Login</Link>
+          Already have an account?{' '}
+          <Link to="/login" style={styles.link}>
+            Login
+          </Link>
         </p>
       </div>
     </div>
@@ -92,18 +105,67 @@ const Register = () => {
 };
 
 const styles = {
-  container: { minHeight: '80vh', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 1rem' },
-  card: { backgroundColor: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', width: '100%', maxWidth: '450px' },
+  container: {
+    minHeight: '80vh',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '2rem 1rem'
+  },
+  card: {
+    backgroundColor: 'white',
+    padding: '2rem',
+    borderRadius: '12px',
+    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    width: '100%',
+    maxWidth: '450px'
+  },
   header: { textAlign: 'center', marginBottom: '2rem' },
-  title: { fontSize: '2rem', fontWeight: 'bold', color: '#1F2937', marginTop: '1rem' },
-  error: { backgroundColor: '#FEE2E2', color: '#DC2626', padding: '0.75rem', borderRadius: '6px', marginBottom: '1rem', textAlign: 'center' },
+  title: {
+    fontSize: '2rem',
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginTop: '1rem'
+  },
+  error: {
+    backgroundColor: '#FEE2E2',
+    color: '#DC2626',
+    padding: '0.75rem',
+    borderRadius: '6px',
+    marginBottom: '1rem',
+    textAlign: 'center'
+  },
   form: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
   inputGroup: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
   label: { fontSize: '0.9rem', fontWeight: '600', color: '#374151' },
-  input: { padding: '0.75rem', fontSize: '1rem', border: '2px solid #E5E7EB', borderRadius: '6px', outline: 'none' },
-  submitBtn: { backgroundColor: '#4F46E5', color: 'white', padding: '0.75rem', fontSize: '1rem', fontWeight: '600', border: 'none', borderRadius: '6px', cursor: 'pointer', marginTop: '1rem' },
-  linkText: { textAlign: 'center', marginTop: '1.5rem', color: '#6B7280' },
-  link: { color: '#4F46E5', textDecoration: 'none', fontWeight: '600' }
+  input: {
+    padding: '0.75rem',
+    fontSize: '1rem',
+    border: '2px solid #E5E7EB',
+    borderRadius: '6px',
+    outline: 'none'
+  },
+  submitBtn: {
+    backgroundColor: '#4F46E5',
+    color: 'white',
+    padding: '0.75rem',
+    fontSize: '1rem',
+    fontWeight: '600',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    marginTop: '1rem'
+  },
+  linkText: {
+    textAlign: 'center',
+    marginTop: '1.5rem',
+    color: '#6B7280'
+  },
+  link: {
+    color: '#4F46E5',
+    textDecoration: 'none',
+    fontWeight: '600'
+  }
 };
 
 export default Register;
