@@ -1,8 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');  // ← Move this to the top!
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+
+// Password validation
+function isValidPassword(password) {
+  const regex = /^(?=.*\d).{8,}$/;
+  return regex.test(password);
+}
 
 // Register Route
 router.post('/register', async (req, res) => {
@@ -13,20 +19,23 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).json({ error: 'User already exists' });
+    if (!isValidPassword(password)) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters long and contain at least one number'
+      });
     }
-    const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
+
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
+    });
+
+    if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
     const newUser = new User({
       username,
       email,
@@ -56,13 +65,11 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Find user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid credentials' });
@@ -72,7 +79,12 @@ router.post('/login', async (req, res) => {
     if (!secret) {
       return res.status(500).json({ error: 'Server configuration error' });
     }
-    const token = jwt.sign({ userId: user._id }, secret, { expiresIn: '7d' });
+
+    const token = jwt.sign(
+      { userId: user._id },
+      secret,
+      { expiresIn: '7d' }
+    );
 
     res.json({
       message: 'Login successful',
@@ -84,7 +96,6 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Server error' });
   }
 });
